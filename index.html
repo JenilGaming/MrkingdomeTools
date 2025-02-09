@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Image Compressor</title>
+  <style>
+    /* General Styles */
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #1e1e1e;
+      color: #ffffff;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 600px;
+      width: 100%;
+      padding: 20px;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+    }
+
+    p {
+      font-size: 1rem;
+      color: #b0b0b0;
+      margin-bottom: 20px;
+    }
+
+    /* Upload Section */
+    .upload-section {
+      margin-bottom: 20px;
+    }
+
+    .upload-label {
+      display: inline-block;
+      padding: 10px 20px;
+      background-color: #333;
+      color: #fff;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .upload-label:hover {
+      background-color: #444;
+    }
+
+    #image-upload {
+      display: none;
+    }
+
+    /* Controls Section */
+    .controls {
+      margin-bottom: 20px;
+    }
+
+    .controls label {
+      font-size: 1rem;
+      margin-right: 10px;
+    }
+
+    #quality-slider {
+      width: 100%;
+      max-width: 300px;
+    }
+
+    /* Output Section */
+    .output-section {
+      display: none;
+      margin-top: 20px;
+    }
+
+    #preview-canvas {
+      max-width: 100%;
+      height: auto;
+      border-radius: 5px;
+      margin-bottom: 20px;
+    }
+
+    .download-button {
+      display: inline-block;
+      padding: 10px 20px;
+      background-color: #007bff;
+      color: #fff;
+      border-radius: 5px;
+      text-decoration: none;
+      transition: background-color 0.3s ease;
+    }
+
+    .download-button:hover {
+      background-color: #0056b3;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Image Compressor</h1>
+    <p>Upload an image, adjust the quality, and download the compressed version.</p>
+    <div class="upload-section">
+      <input type="file" id="image-upload" accept="image/*" />
+      <label for="image-upload" class="upload-label">Choose Image</label>
+    </div>
+    <div class="controls">
+      <label for="quality-slider">Quality: <span id="quality-value">80</span>%</label>
+      <input type="range" id="quality-slider" min="1" max="100" value="80">
+    </div>
+    <div class="output-section">
+      <canvas id="preview-canvas"></canvas>
+      <a id="download-link" class="download-button" download="compressed-image.jpg">Download Compressed Image</a>
+    </div>
+  </div>
+
+  <script>
+    const imageUpload = document.getElementById('image-upload');
+    const qualitySlider = document.getElementById('quality-slider');
+    const qualityValue = document.getElementById('quality-value');
+    const previewCanvas = document.getElementById('preview-canvas');
+    const downloadLink = document.getElementById('download-link');
+    const outputSection = document.querySelector('.output-section');
+
+    let uploadedImage = null;
+
+    // Handle image upload
+    imageUpload.addEventListener('change', (event) => {
+      const file = event.target.files[0];
+      if (file && file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          uploadedImage = new Image();
+          uploadedImage.src = e.target.result;
+          uploadedImage.onload = () => {
+            compressImage();
+            outputSection.style.display = 'block';
+          };
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    // Handle quality slider change
+    qualitySlider.addEventListener('input', () => {
+      qualityValue.textContent = qualitySlider.value;
+      if (uploadedImage) {
+        compressImage();
+      }
+    });
+
+    // Compress the image
+    function compressImage() {
+      const canvas = previewCanvas;
+      const ctx = canvas.getContext('2d');
+
+      // Set canvas dimensions to match the uploaded image
+      canvas.width = uploadedImage.width;
+      canvas.height = uploadedImage.height;
+
+      // Draw the image on the canvas
+      ctx.drawImage(uploadedImage, 0, 0, canvas.width, canvas.height);
+
+      // Convert canvas to compressed image
+      canvas.toBlob(
+        (blob) => {
+          const compressedImageUrl = URL.createObjectURL(blob);
+          downloadLink.href = compressedImageUrl;
+        },
+        'image/jpeg',
+        qualitySlider.value / 100
+      );
+    }
+  </script>
+</body>
+</html>
